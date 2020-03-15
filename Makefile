@@ -26,13 +26,13 @@ LIB_HEADERS = $(INC_DIR)/cel_led.h
 LIB_INSTALL_HEADERS =  $(LIB_HEADERS:$(INC_DIR)/%.h=$(BUILD_DIR)/%.h)
 
 # list of library objects
-LIB_OBJECTS = $(LIB_SRCS:.c=.o) 
+LIB_OBJECTS = $(LIB_SRCS:.c=.o)
 
 #list of files to be compiled into application only
 APP_SRCS = $(SRC_DIR)/main.c
 
 # list of application specific object files
-APP_OBJECTS = $(APP_SRCS:.c=.o) 
+APP_OBJECTS = $(APP_SRCS:.c=.o)
 
 # targets' definition
 .PHONY: default clean debug

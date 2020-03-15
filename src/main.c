@@ -5,23 +5,32 @@
 
 #define BLINK_TIME 500
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     printf("CEnviroLib sample app\n");
 
     bool status = cel_led_init();
-    if (!status) {
+    if (!status)
+    {
         printf("Failed to initilize leds - exiting\n");
         return 1;
     }
 
-    printf("1. Blink LEDs 5 times\n");
-    for (int i = 0; i < 5; ++i) {
+    printf("1. Blink LEDs\n");
+    for (int i = 0; i < 5; ++i)
+    {
         cel_led_set(true);
         printf("- blink -\n");
         usleep(BLINK_TIME * 1000);
         cel_led_set(false);
         usleep(BLINK_TIME * 1000);
     }
+
+    printf("2. Read temperature sensor data\n");
+
+    printf("3. Read barometer data\n");
+
+    printf("4. Read light sensor data\n");
 
     cel_led_deinit();
 
