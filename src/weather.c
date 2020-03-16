@@ -14,10 +14,12 @@
 
 // Address of used BMP registers
 #define BMP_ADDRESS_ID 0xd0
-#define BMP_ADDRESS_RESET 0xe0            // only 0xb6 has effect
-#define BMP_ADDRRESS_CONTROL 0xf4         // temp_measure | press measure | power mode
-#define BMP_ADDRESS_CALIBRATION_TEMP 0x88 // lowest address of 6B calibration data
-#define BMP_ADDRESS_RAW_TEMP 0xfa         // lowest address of 3B temperature data
+#define BMP_ADDRESS_RESET 0xe0             // only 0xb6 has effect
+#define BMP_ADDRRESS_CONTROL 0xf4          // temp_measure | press measure | power mode
+#define BMP_ADDRESS_CALIBRATION_TEMP 0x88  // lowest address of 6B temperature calibration data
+#define BMP_ADDRESS_CALIBRATION_PRESS 0x8e // lowest address of 6B pressure calibration data
+#define BMP_ADDRESS_RAW_TEMP 0xfa          // lowest address of 3B temperature data
+#define BMP_ADDRESS_RAW_PRESS 0xf7         // lowest address of 3B temperature data
 
 bool _w_initialized = false;
 int _bus_fd = 0;
@@ -26,10 +28,22 @@ int _bus_fd = 0;
 static bool _initialize_BMP();
 static bool _read_BMP_calibration_data();
 static int32_t _calibrate_temperature(int32_t adc_T);
+static int32_t _calibrate_pressure(int32_t adc_P);
 
+// temperature callibration
 static uint16_t _calibration_T1 = 0;
 static int16_t _calibration_T2 = 0;
 static int16_t _calibration_T3 = 0;
+// pressure calibration
+static uint16_t _calibration_P1 = 0;
+static int16_t _calibration_P2 = 0;
+static int16_t _calibration_P3 = 0;
+static int16_t _calibration_P4 = 0;
+static int16_t _calibration_P5 = 0;
+static int16_t _calibration_P6 = 0;
+static int16_t _calibration_P7 = 0;
+static int16_t _calibration_P8 = 0;
+static int16_t _calibration_P9 = 0;
 
 // API functions definitions
 bool cel_weather_init()
@@ -101,7 +115,37 @@ double cel_weather_read_temp()
 
 double cel_weather_read_baro()
 {
-    return 0.0;
+    if (!_w_initialized)
+    {
+        return 0.0;
+    }
+
+    uint8_t buffer[3];
+    ssize_t count = 0;
+
+    buffer[0] = BMP_ADDRESS_RAW_PRESS;
+    count = write(_bus_fd, buffer, 1);
+    if (count != 1)
+    {
+        LOG("Failed to send command for temp. reading\n");
+        return 0.0;
+    }
+
+    usleep(COMMAND_WAIT * 1000);
+    count = read(_bus_fd, buffer, 3);
+    if (count != 3)
+    {
+        LOG("Failed to read raw temperature data\n");
+        return 0.0;
+    }
+
+    int32_t full_raw_press = 0;
+    full_raw_press = ((int32_t)buffer[0]) << 12 | ((int32_t)buffer[1]) << 4 | ((int32_t)buffer[2]) >> 4;
+
+    int32_t calibrated_press = _calibrate_pressure(full_raw_press);
+
+    // return value in hPa
+    return ((double)calibrated_press) / 100;
 }
 
 void cel_weather_deinit()
@@ -124,7 +168,7 @@ void cel_weather_deinit()
 bool _initialize_BMP()
 {
 #define TEMP_MEASURE 0x01
-#define PRESS_MEASURE 0x00
+#define PRESS_MEASURE 0x01
 #define POWER_MODE 0x03
     uint8_t config = (TEMP_MEASURE << 5) | (PRESS_MEASURE << 2) | POWER_MODE;
     uint8_t buffer[2];
@@ -172,14 +216,14 @@ bool _initialize_BMP()
 
 bool _read_BMP_calibration_data()
 {
-    uint8_t buffer[6];
-    buffer[0] = BMP_ADDRESS_CALIBRATION_TEMP;
+    uint8_t buffer[20];
     ssize_t count = 0;
 
+    buffer[0] = BMP_ADDRESS_CALIBRATION_TEMP;
     count = write(_bus_fd, buffer, 1);
     if (count != 1)
     {
-        LOG("Failed to send command for temp. calibration read\n");
+        LOG("Failed to send command for temperature calibration read\n");
         return false;
     }
 
@@ -187,12 +231,38 @@ bool _read_BMP_calibration_data()
     count = read(_bus_fd, buffer, 6);
     if (count != 6)
     {
-        LOG("Failed to read temp. calibration data\n");
+        LOG("Failed to read pressure calibration data\n");
         return false;
     }
     _calibration_T1 = ((uint16_t)buffer[1]) << 8 | (uint16_t)buffer[0];
     _calibration_T2 = ((int16_t)buffer[3]) << 8 | (int16_t)buffer[2];
     _calibration_T3 = ((int16_t)buffer[5]) << 8 | (int16_t)buffer[4];
+
+    buffer[0] = BMP_ADDRESS_CALIBRATION_PRESS;
+    count = write(_bus_fd, buffer, 1);
+    if (count != 1)
+    {
+        LOG("Failed to send command for pressure calibration read\n");
+        return false;
+    }
+
+    usleep(COMMAND_WAIT * 1000);
+    count = read(_bus_fd, buffer, 18);
+    if (count != 18)
+    {
+        LOG("Failed to read pressure calibration data\n");
+        return false;
+    }
+
+    _calibration_P1 = ((uint16_t)buffer[1]) << 8 | (uint16_t)buffer[0];
+    _calibration_P2 = ((int16_t)buffer[3]) << 8 | (int16_t)buffer[2];
+    _calibration_P3 = ((int16_t)buffer[5]) << 8 | (int16_t)buffer[4];
+    _calibration_P4 = ((int16_t)buffer[7]) << 8 | (int16_t)buffer[6];
+    _calibration_P5 = ((int16_t)buffer[9]) << 8 | (int16_t)buffer[8];
+    _calibration_P6 = ((int16_t)buffer[11]) << 8 | (int16_t)buffer[10];
+    _calibration_P7 = ((int16_t)buffer[13]) << 8 | (int16_t)buffer[12];
+    _calibration_P8 = ((int16_t)buffer[15]) << 8 | (int16_t)buffer[14];
+    _calibration_P9 = ((int16_t)buffer[17]) << 8 | (int16_t)buffer[16];
 
     return true;
 }
@@ -229,7 +299,7 @@ int8_t cel_read_chip_id()
 
 // compute temperature
 
-int32_t t_fine;
+int32_t t_fine = 0;
 
 // _calibrate_temperature() is a compensation function from Bosh specification for BMP280
 int32_t _calibrate_temperature(int32_t adc_T)
@@ -242,4 +312,42 @@ int32_t _calibrate_temperature(int32_t adc_T)
     t_fine = var1 + var2;
     T = (t_fine * 5 + 128) >> 8;
     return T;
+}
+
+// _calibrate_pressure() is a compensation function from Bosh specification for BMP280
+int32_t _calibrate_pressure(int32_t adc_P)
+{
+    int32_t var1 = 0, var2 = 0;
+    uint32_t p = 0;
+
+    if (t_fine == 0)
+    {
+        // this param is computed during temperature computation but needed for pressure calibration
+        // if not set yet then force one temperature reading
+        cel_weather_read_temp();
+    }
+
+    var1 = (((int32_t)t_fine) >> 1) - (int32_t)64000;
+    var2 = (((var1 >> 2) * (var1 >> 2)) >> 11) * ((int32_t)_calibration_P6);
+    var2 = var2 + ((var1 * ((int32_t)_calibration_P5)) << 1);
+    var2 = (var2 >> 2) + (((int32_t)_calibration_P4) << 16);
+    var1 = (((_calibration_P3 * (((var1 >> 2) * (var1 >> 2)) >> 13)) >> 3) + ((((int32_t)_calibration_P2) * var1) >> 1)) >> 18;
+    var1 = ((((32768 + var1)) * ((int32_t)_calibration_P1)) >> 15);
+    if (var1 == 0)
+    {
+        return 0; // avoid exception caused by division by zero
+    }
+    p = (((uint32_t)(((int32_t)1048576) - adc_P) - (var2 >> 12))) * 3125;
+    if (p < 0x80000000)
+    {
+        p = (p << 1) / ((uint32_t)var1);
+    }
+    else
+    {
+        p = (p / (uint32_t)var1) * 2;
+    }
+    var1 = (((int32_t)_calibration_P9) * ((int32_t)(((p >> 3) * (p >> 3)) >> 13))) >> 12;
+    var2 = (((int32_t)(p >> 2)) * ((int32_t)_calibration_P8)) >> 13;
+    p = (uint32_t)((int32_t)p + ((var1 + var2 + _calibration_P7) >> 4));
+    return p;
 }
