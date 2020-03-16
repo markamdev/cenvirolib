@@ -1,4 +1,4 @@
-# CEnviroLib - C library for Enviro pHat shield
+# CEnviroLib - C Enviro shield Library
 
 This project provides simple C library for handling Enviro pHat shield on Raspberry Pi.
 
@@ -13,24 +13,47 @@ git clone https://github.com/markamdev/cenvirolib
 make
 ```
 
-In case you're downloading the project to your PC but want to use in applications launched on Raspberry Pi please define which compiler should be used. In my case it's *arm-linux-gnueabihf-gcc*:
+In case you're downloading the project to your PC but want to use in applications launched on Raspberry Pi please define which compiler should be used. Fo example it can be ***arm-linux-gnueabihf-gcc***:
 
 ```bash
 git clone https://github.com/markamdev/cenvirolib
 make CC=arm-linux-gnueabihf-gcc
 ```
 
-In output directory (*./build*) you will find necessary header files (*cel_\*.h*) and library itself (*cenvirolib.a*).
+In output directory (*./build*) you will find necessary header files (*cel_\*.h*) and library itself (*libcenviro.a*).
 
 ## Functionality
+
+The goal of this project was to provide simple C library for Enviro pHat support. The intention was to make this shield easy to use - not to exhaust all possible configurations of the onboard chips. That's why only simple mode of operation is available for each of the sensors. Of course, as the full source code is available, developer can modify configuration flow to obtain desired results.
+
+Library has 4 logical modules with one header file each:
+
+* LED support - turning onboard white LEDs on and off (see [this chapter](#led-control))
+* "Weather" support - reading envirornment temperature and atmosspheric pressure (see [this chapter](#barometer-and-thermometer))
+* Light sensor support - reading lighting level and data from color sensor (see [this chapter](#light-sensor))
+* Motion sensor support - reading information about orientation (compass) and acceleration (see [this chapter](#motion-sensor))
 
 ## API
 
 ### LED control
 
+Available functions are declared in *cel_leds.h*.
+
 ### Barometer and thermometer
 
+Available functions are declared in *cel_weather.h*.
+
+### Light sensor
+
+This module is *not yet implemented*.
+
 ### Motion sensor
+
+This module is *not yet implemented*.
+
+## Demo and sample applications
+
+This project provides some sample applications that uses selected CEnviroLib features:
 
 ## License
 
