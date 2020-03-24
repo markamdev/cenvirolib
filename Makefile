@@ -7,7 +7,8 @@ SRC_DIR = ./src
 BUILD_DIR = ./build
 
 # output files
-APP_NAME=cenviroapp
+DEMO_NAME=cenvirodemo
+METEO_NAME=meteo-app
 LIB_NAME=libcenviro
 
 # build flags
@@ -26,42 +27,60 @@ LIB_HEADERS = $(INC_DIR)/cel_led.h $(INC_DIR)/cel_weather.h
 LIB_INSTALL_HEADERS =  $(LIB_HEADERS:$(INC_DIR)/%.h=$(BUILD_DIR)/%.h)
 
 # list of library objects
-LIB_OBJECTS = $(LIB_SRCS:.c=.o)
+LIB_OBJS = $(LIB_SRCS:.c=.o)
 
-#list of files to be compiled into application only
-APP_SRCS = $(SRC_DIR)/main.c
+#list of files to be compiled into demo application
+DEMO_SRCS = apps/demo/main.c
+# list of demo application object files
+DEMO_OBJS = $(DEMO_SRCS:.c=.o)
 
-# list of application specific object files
-APP_OBJECTS = $(APP_SRCS:.c=.o)
+# list of files to be compiled into simple meteo application
+METEO_SRCS = apps/meteo/main.c
+# list of meteo object files
+METEO_OBJS = $(METEO_SRCS:.c=.o)
 
 # targets' definition
-.PHONY: default clean debug
+.PHONY: default clean debug demo meteo
 
-default: $(BUILD_DIR)/$(LIB_NAME).a $(BUILD_DIR)/$(APP_NAME)
+default: $(BUILD_DIR)/$(LIB_NAME).a demo
 
-$(BUILD_DIR)/$(APP_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(APP_OBJECTS)
+demo: $(BUILD_DIR)/$(DEMO_NAME)
+
+meteo: $(BUILD_DIR)/$(METEO_NAME)
+
+# demo application
+$(BUILD_DIR)/$(DEMO_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(DEMO_OBJS)
 	@echo "BINARY: $@"
-	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(APP_OBJECTS) -lcenviro -o $(BUILD_DIR)/$(APP_NAME)
+	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(DEMO_OBJS) -lcenviro -o $(BUILD_DIR)/$(DEMO_NAME)
 
-$(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJECTS)
+# meteo sample app
+$(BUILD_DIR)/$(METEO_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(METEO_OBJS)
+	@echo "BINARY: $@"
+	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(METEO_OBJS) -lcenviro -o $(BUILD_DIR)/$(METEO_NAME)
+
+# library compilation
+$(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJS)
 	@echo "LIBRARY: $@"
-	@ar rcs $@ $(LIB_OBJECTS)
+	@ar rcs $@ $(LIB_OBJS)
 
 clean:
 	@echo "CLEAN"
-	@rm -f $(LIB_OBJECTS) $(APP_OBJECTS)
+	@rm -f $(LIB_OBJS) $(DEMO_OBJS)
 	@rm -rf $(BUILD_DIR)
 
+# output directory creation
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
 debug: C_FLAGS += -g -DDEBUG
 debug: default
 
+# header files copying
 $(BUILD_DIR)/%.h: $(INC_DIR)/%.h
 	@echo "COPY $@"
 	@cp $< $@
 
+# object files creation from C files
 %.o: %.c
 	@echo "OBJECT: $@"
 	@$(CC) $(C_FLAGS) -c -o $@ $<

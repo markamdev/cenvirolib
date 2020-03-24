@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "cel_led.h"
-#include "cel_weather.h"
+#include <cel_led.h>
+#include <cel_weather.h>
 
 #define BLINK_TIME 500
 #define READ_WEATHER_DELAY 1000
