@@ -3,8 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <cel_led.h>
-#include <cel_weather.h>
+#include <cenviro.h>
 
 #define BLINK_TIME 500
 #define READ_WEATHER_DELAY 1000
@@ -28,78 +27,62 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    status = cenviro_init();
+    if (!status)
+    {
+        printf("Failed to initialize cenviro library");
+        return 1;
+    }
+
     if (_opt_all || _opt_led)
     {
         printf("Blink LEDs\n");
-        status = cel_led_init();
-        if (!status)
-        {
-            printf("Failed to initilize leds - exiting\n");
-            return 1;
-        }
 
         for (int i = 0; i < 5; ++i)
         {
-            cel_led_set(true);
+            cenviro_led_set(true);
             printf("- blink -\n");
             usleep(BLINK_TIME * 1000);
-            cel_led_set(false);
+            cenviro_led_set(false);
             usleep(BLINK_TIME * 1000);
         }
-
-        cel_led_deinit();
     }
 
     if (_opt_all || _opt_temp)
     {
-        printf("Read temperature sensor data\n");
-        status = cel_weather_init();
-        if (!status)
-        {
-            printf("Failed to initilize weather sensors - exiting\n");
-            return 1;
-        }
-        uint8_t chip_id = cel_read_chip_id();
+        uint8_t chip_id = cenviro_weather_chip_id();
         if (chip_id != 0x58)
         {
             printf("Unsupported temp/pressure chip: 0x%2x\n", chip_id);
+            cenviro_deinit();
             return 1;
         }
 
         for (int i = 0; i < 5; ++i)
         {
-            double temp = cel_weather_read_temp();
+            double temp = cenviro_weather_temperature();
             printf("- current temp is: %.1f [*C]\n", temp);
             usleep(READ_WEATHER_DELAY * 1000);
         }
-
-        cel_weather_deinit();
     }
 
     if (_opt_all || _opt_pressure)
     {
         printf("Read barometer data\n");
-        status = cel_weather_init();
-        if (!status)
-        {
-            printf("Failed to initilize weather sensors - exiting\n");
-            return 1;
-        }
-        uint8_t chip_id = cel_read_chip_id();
+        uint8_t chip_id = cenviro_weather_chip_id();
         if (chip_id != 0x58)
         {
             printf("Unsupported temp/pressure chip: 0x%2x\n", chip_id);
+            cenviro_deinit();
             return 1;
         }
 
         for (int i = 0; i < 5; ++i)
         {
-            double press = cel_weather_read_baro();
+            double press = cenviro_weather_pressure();
             printf("- current pressure is: %.1f [hPa]\n", press);
             usleep(READ_WEATHER_DELAY * 1000);
         }
-
-        cel_weather_deinit();
     }
 
     if (_opt_all || _opt_light)
@@ -107,6 +90,7 @@ int main(int argc, char *argv[])
         printf("Read light sensor data\n");
     }
 
+    cenviro_deinit();
     return 0;
 }
 

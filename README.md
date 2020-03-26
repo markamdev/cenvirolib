@@ -20,7 +20,7 @@ git clone https://github.com/markamdev/cenvirolib
 make CC=arm-linux-gnueabihf-gcc
 ```
 
-In output directory (*./build*) you will find necessary header files (*cel_\*.h*) and library itself (*libcenviro.a*).
+In output directory (*./build*) you will find header file (*cenviro.h*) and library itself (*libcenviro.a*).
 
 ## Functionality
 
@@ -35,13 +35,29 @@ Library has 4 logical modules with one header file each:
 
 ## API
 
+To use any API described in next chapters library has to be initialized first. Initialization is done using
+
+```c
+bool cenviro_init();
+```
+
+This function returns *true* if initialization succeed, *false* otherwise. If library initialization failed then none of functions for getting/setting data can be used.
+
+When library is not needed or when application finishes, it is higly recommended to call
+
+```c
+void cenviro_deinit();
+```
+
+to properly release all initialized resources.
+
 ### LED control
 
-Available functions are declared in *cel_leds.h*.
+Available functions this module are: ...
 
 ### Barometer and thermometer
 
-Available functions are declared in *cel_weather.h*.
+Available functions this module are: ...
 
 ### Light sensor
 
@@ -53,7 +69,10 @@ This module is *not yet implemented*.
 
 ## Demo and sample applications
 
-This project provides some sample applications that uses selected CEnviroLib features:
+This project provides following sample applications that show possible library use:
+
+* demo
+* meteo-app
 
 ## License
 

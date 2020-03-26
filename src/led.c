@@ -3,11 +3,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include "cel_led.h"
+#include "cenviro.h"
+#include "internal.h"
 #include "logs.h"
 
-// GPIO pin number for LED control
-#define LED_PIN 4
 // number of retrials when accessing /sys/class/gpio/*
 #define RETRIAL_COUNT 3
 // time for delay between retrials (in [ms])
@@ -26,7 +25,7 @@ static bool _gpio_open_output_file();
 static bool _gpio_set_value(bool value);
 static bool _gpio_unexport();
 
-bool cel_led_init()
+bool cenviro_led_init()
 {
     if (!_gpio_export())
     {
@@ -47,7 +46,7 @@ bool cel_led_init()
     return true;
 }
 
-void cel_led_set(bool state)
+void cenviro_led_set(bool state)
 {
     if (!_led_initialized)
     {
@@ -59,7 +58,7 @@ void cel_led_set(bool state)
     }
 }
 
-void cel_led_deinit()
+void cenviro_led_deinit()
 {
     if (!_led_initialized)
     {

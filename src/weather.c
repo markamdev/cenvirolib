@@ -2,15 +2,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-//#include <stdlib.h>
-//#include <i2c/smbus.h>
 
-#include "cel_weather.h"
+#include "cenviro.h"
+#include "internal.h"
 #include "logs.h"
-
-#define WEATHER_BUS_FILE "/dev/i2c-1"
-#define WEATHER_ADDR 0x77
-#define COMMAND_WAIT 5
 
 // Address of used BMP registers
 #define BMP_ADDRESS_ID 0xd0
@@ -46,24 +41,20 @@ static int16_t _calibration_P8 = 0;
 static int16_t _calibration_P9 = 0;
 
 // API functions definitions
-bool cel_weather_init()
+bool cenviro_weather_init()
 {
-    int bus_file;
-
-    bus_file = open(WEATHER_BUS_FILE, O_RDWR);
-    if (bus_file < 0)
+    if (!_cenviro_initialized)
     {
-        LOG("Failed to open i2c bus\n");
+        LOG("Library not initialized exiting");
         return false;
     }
 
-    if (ioctl(bus_file, I2C_SLAVE, WEATHER_ADDR) < 0)
+    if (ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR) < 0)
     {
         LOG("Failed to set weather sensor address\n");
         return false;
     }
 
-    _bus_fd = bus_file;
     if (_initialize_BMP() != true)
     {
         LOG("Chip initialization failed");
@@ -79,7 +70,7 @@ bool cel_weather_init()
     return true;
 }
 
-double cel_weather_read_temp()
+double cenviro_weather_temperature()
 {
     if (!_w_initialized)
     {
@@ -88,6 +79,8 @@ double cel_weather_read_temp()
 
     uint8_t buffer[3];
     ssize_t count = 0;
+
+    ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     buffer[0] = BMP_ADDRESS_RAW_TEMP;
     count = write(_bus_fd, buffer, 1);
@@ -113,7 +106,7 @@ double cel_weather_read_temp()
     return ((double)calibrated_temp) / 100;
 }
 
-double cel_weather_read_baro()
+double cenviro_weather_pressure()
 {
     if (!_w_initialized)
     {
@@ -122,6 +115,8 @@ double cel_weather_read_baro()
 
     uint8_t buffer[3];
     ssize_t count = 0;
+
+    ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     buffer[0] = BMP_ADDRESS_RAW_PRESS;
     count = write(_bus_fd, buffer, 1);
@@ -148,23 +143,9 @@ double cel_weather_read_baro()
     return ((double)calibrated_press) / 100;
 }
 
-void cel_weather_deinit()
-{
-    if (!_w_initialized)
-    {
-        return;
-    }
-    if (_bus_fd > 0)
-    {
-        close(_bus_fd);
-        _bus_fd = 0;
-    }
-    _w_initialized = false;
-}
-
 // internal functions definitions
 
-// initialize chip with simple temperature only measure in normal mode
+// initialize chip with simple temperature and pressure measurement in normal mode
 bool _initialize_BMP()
 {
 #define TEMP_MEASURE 0x01
@@ -268,11 +249,17 @@ bool _read_BMP_calibration_data()
 }
 
 // temporary helper functions definitions
-int8_t cel_read_chip_id()
+int8_t cenviro_weather_chip_id()
 {
     if (!_w_initialized)
     {
         return 0x00;
+    }
+
+    if (ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR) < 0)
+    {
+        LOG("Failed to set weather sensor address\n");
+        return false;
     }
 
     uint8_t buffer[5] = {0};
@@ -324,7 +311,7 @@ int32_t _calibrate_pressure(int32_t adc_P)
     {
         // this param is computed during temperature computation but needed for pressure calibration
         // if not set yet then force one temperature reading
-        cel_weather_read_temp();
+        cenviro_weather_temperature();
     }
 
     var1 = (((int32_t)t_fine) >> 1) - (int32_t)64000;
