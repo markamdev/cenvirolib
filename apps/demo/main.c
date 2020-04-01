@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     status = cenviro_init();
     if (!status)
     {
-        printf("Failed to initialize cenviro library");
+        printf("Failed to initialize cenviro library\n");
         return 1;
     }
 
@@ -88,6 +88,14 @@ int main(int argc, char *argv[])
     if (_opt_all || _opt_light)
     {
         printf("Read light sensor data\n");
+
+        for (int i = 0; i < 5; ++i)
+        {
+            cenviro_color_t color = cenviro_light_color();
+            printf("- detected color composition is (R/G/B): %3d/%3d/%3d\n",
+                   color.red, color.green, color.blue);
+            usleep(READ_WEATHER_DELAY * 1000);
+        }
     }
 
     cenviro_deinit();

@@ -20,7 +20,7 @@ C_FLAGS += -D_XOPEN_SOURCE=500
 LD_FLAGS = -pthread
 
 # list of files to be compiled into library
-LIB_SRCS = $(SRC_DIR)/led.c $(SRC_DIR)/weather.c $(SRC_DIR)/cenviro.c
+LIB_SRCS = $(SRC_DIR)/led.c $(SRC_DIR)/weather.c $(SRC_DIR)/light.c $(SRC_DIR)/cenviro.c
 
 # list of library header files
 LIB_HEADERS = $(INC_DIR)/cenviro.h

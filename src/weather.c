@@ -16,8 +16,7 @@
 #define BMP_ADDRESS_RAW_TEMP 0xfa          // lowest address of 3B temperature data
 #define BMP_ADDRESS_RAW_PRESS 0xf7         // lowest address of 3B temperature data
 
-bool _w_initialized = false;
-int _bus_fd = 0;
+static bool _w_initialized = false;
 
 // forward declaration of internal functions
 static bool _initialize_BMP();
@@ -83,7 +82,7 @@ double cenviro_weather_temperature()
     ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     buffer[0] = BMP_ADDRESS_RAW_TEMP;
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to send command for temp. reading\n");
@@ -91,7 +90,7 @@ double cenviro_weather_temperature()
     }
 
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 3);
+    count = read(_cenviro_bus_fd, buffer, 3);
     if (count != 3)
     {
         LOG("Failed to read raw temperature data\n");
@@ -119,7 +118,7 @@ double cenviro_weather_pressure()
     ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     buffer[0] = BMP_ADDRESS_RAW_PRESS;
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to send command for temp. reading\n");
@@ -127,7 +126,7 @@ double cenviro_weather_pressure()
     }
 
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 3);
+    count = read(_cenviro_bus_fd, buffer, 3);
     if (count != 3)
     {
         LOG("Failed to read raw temperature data\n");
@@ -159,7 +158,7 @@ bool _initialize_BMP()
     ssize_t count = 0;
 
     // send config
-    count = write(_bus_fd, buffer, 2);
+    count = write(_cenviro_bus_fd, buffer, 2);
     if (count != 2)
     {
         LOG("Failed to write config");
@@ -168,7 +167,7 @@ bool _initialize_BMP()
 
     // set device to return config
     usleep(COMMAND_WAIT * 1000);
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to send command for config read");
@@ -177,7 +176,7 @@ bool _initialize_BMP()
 
     buffer[0] = 0x00;
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 1);
+    count = read(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to read config\n");
@@ -201,7 +200,7 @@ bool _read_BMP_calibration_data()
     ssize_t count = 0;
 
     buffer[0] = BMP_ADDRESS_CALIBRATION_TEMP;
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to send command for temperature calibration read\n");
@@ -209,7 +208,7 @@ bool _read_BMP_calibration_data()
     }
 
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 6);
+    count = read(_cenviro_bus_fd, buffer, 6);
     if (count != 6)
     {
         LOG("Failed to read pressure calibration data\n");
@@ -220,7 +219,7 @@ bool _read_BMP_calibration_data()
     _calibration_T3 = ((int16_t)buffer[5]) << 8 | (int16_t)buffer[4];
 
     buffer[0] = BMP_ADDRESS_CALIBRATION_PRESS;
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to send command for pressure calibration read\n");
@@ -228,7 +227,7 @@ bool _read_BMP_calibration_data()
     }
 
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 18);
+    count = read(_cenviro_bus_fd, buffer, 18);
     if (count != 18)
     {
         LOG("Failed to read pressure calibration data\n");
@@ -266,7 +265,7 @@ int8_t cenviro_weather_chip_id()
     buffer[0] = BMP_ADDRESS_ID;
     ssize_t count = 0;
 
-    count = write(_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to write command for chip id\n");
@@ -274,7 +273,7 @@ int8_t cenviro_weather_chip_id()
     }
 
     usleep(COMMAND_WAIT * 1000);
-    count = read(_bus_fd, buffer, 1);
+    count = read(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
         LOG("Failed to read chip id\n");
