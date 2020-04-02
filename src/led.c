@@ -30,6 +30,7 @@ bool cenviro_led_init()
     if (!_gpio_export())
     {
         LOG("GPIO export failed\n");
+        // TODO: maybe pin is already exported - add check for this situation
         return false;
     }
     if (!_gpio_set_output())

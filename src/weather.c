@@ -161,7 +161,7 @@ bool _initialize_BMP()
     count = write(_cenviro_bus_fd, buffer, 2);
     if (count != 2)
     {
-        LOG("Failed to write config");
+        LOG("Failed to write config\n");
         return false;
     }
 
@@ -170,7 +170,7 @@ bool _initialize_BMP()
     count = write(_cenviro_bus_fd, buffer, 1);
     if (count != 1)
     {
-        LOG("Failed to send command for config read");
+        LOG("Failed to send command for config read\n");
         return false;
     }
 
@@ -184,7 +184,7 @@ bool _initialize_BMP()
     }
     if (config != buffer[0])
     {
-        LOG("Sent and received config differs");
+        LOG("Sent and received config differs\n");
         return false;
     }
 
@@ -248,7 +248,7 @@ bool _read_BMP_calibration_data()
 }
 
 // temporary helper functions definitions
-int8_t cenviro_weather_chip_id()
+uint8_t cenviro_weather_chip_id()
 {
     if (!_w_initialized)
     {

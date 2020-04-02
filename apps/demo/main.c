@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         uint8_t chip_id = cenviro_weather_chip_id();
         if (chip_id != 0x58)
         {
-            printf("Unsupported temp/pressure chip: 0x%2x\n", chip_id);
+            printf("Unsupported temp/pressure chip: 0x%02x\n", chip_id);
             cenviro_deinit();
             return 1;
         }
@@ -88,12 +88,23 @@ int main(int argc, char *argv[])
     if (_opt_all || _opt_light)
     {
         printf("Read light sensor data\n");
+        uint8_t chip_id = cenviro_light_chip_id();
+        if (chip_id != 0x44 && chip_id != 0x4d)
+        {
+            printf("Unsupported light chip: 0x%02x\n", chip_id);
+            cenviro_deinit();
+            return 1;
+        }
+        else
+        {
+            printf("Chip version detected: 0x%02x (%s)\n", chip_id, cenviro_light_chip_name());
+        }
 
         for (int i = 0; i < 5; ++i)
         {
-            cenviro_color_t color = cenviro_light_color();
-            printf("- detected color composition is (R/G/B): %3d/%3d/%3d\n",
-                   color.red, color.green, color.blue);
+            cenviro_crgb_t color = cenviro_light_crgb_scaled();
+            printf("- detected color composition is (C [R/G/B]): %4d [%3d/%3d/%3d]\n",
+                   color.clear, color.red, color.green, color.blue);
             usleep(READ_WEATHER_DELAY * 1000);
         }
     }

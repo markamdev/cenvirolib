@@ -16,18 +16,23 @@ double cenviro_weather_temperature();
 
 double cenviro_weather_pressure();
 
-int8_t cenviro_weather_chip_id();
+uint8_t cenviro_weather_chip_id();
 
 // light module
 typedef struct
 {
-    int red;
-    int green;
-    int blue;
-} cenviro_color_t;
+    uint16_t clear;
+    uint16_t red;
+    uint16_t green;
+    uint16_t blue;
+} cenviro_crgb_t;
 
-int32_t cenviro_light_luminance();
+cenviro_crgb_t cenviro_light_crgb_raw();
 
-cenviro_color_t cenviro_light_color();
+cenviro_crgb_t cenviro_light_crgb_scaled();
+
+uint8_t cenviro_light_chip_id();
+
+const char *cenviro_light_chip_name();
 
 #endif // _CENVIRO_H_
