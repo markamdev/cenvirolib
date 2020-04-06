@@ -32,6 +32,7 @@ Library has 4 logical modules with one header file each:
 * "Weather" support - reading envirornment temperature and atmosspheric pressure (see [this chapter](#barometer-and-thermometer))
 * Light sensor support - reading lighting level and data from color sensor (see [this chapter](#light-sensor))
 * Motion sensor support - reading information about orientation (compass) and acceleration (see [this chapter](#motion-sensor))
+* ADC support - 4-channel analog-to-digital converter (see [this chapter](#ad-converter))
 
 ## API
 
@@ -41,31 +42,103 @@ To use any API described in next chapters library has to be initialized first. I
 bool cenviro_init();
 ```
 
-This function returns *true* if initialization succeed, *false* otherwise. If library initialization failed then none of functions for getting/setting data can be used.
+This function returns *true* if initialization succeed, *false* otherwise. If library initialization failed then none of functions for getting/setting data can be used as it will return error or defaul value ("0" in most cases).
 
-When library is not needed or when application finishes, it is higly recommended to call
+When library is not needed or when application finishes, it is higly recommended to call:
 
 ```c
 void cenviro_deinit();
 ```
 
-to properly release all initialized resources.
+to properly release all initialized resources (ex. unexport GPIO pin).
 
 ### LED control
 
-Available functions this module are: ...
+API for this module contains one function:
+
+```C
+void cenviro_led_set(bool state);
+```
+
+#### cenviro_led_set()
+
+This function sets onboard LED to **on** or **off** state depending on provided function parameter (**true** and **false** respectively).
 
 ### Barometer and thermometer
 
-Available functions this module are: ...
+API for this module consist of following functions:
+
+```c
+double cenviro_weather_temperature();
+
+double cenviro_weather_pressure();
+
+uint8_t cenviro_weather_chip_id();
+```
+
+#### cenviro_weather_temperature()
+
+This function returns current temperature value.
+
+#### cenviro_weather_pressure()
+
+This function returns current pressure value.
+
+***WARNING*** Pressure data calibration function uses value computed by temperature data calibration function. If temperature has not been fetched and computed yet then first call to *cenviro_weather_pressure()* internaly invokes temperature data fetching and calibration computation. In case of long term pressure only monitoring (when significant temperature change can take place) it is highly recommended to periodically call *cenviro_weather_temperature()*.
+
+#### cenviro_weather_chip_id()
+
+This function return "weather" sensor chip identifier (single byte, unsigned value).
 
 ### Light sensor
 
-This module is *not yet implemented*.
+API for this module consist of following functions:
+
+```c
+cenviro_crgb_t cenviro_light_crgb_raw();
+
+cenviro_crgb_t cenviro_light_crgb_scaled();
+
+uint8_t cenviro_light_chip_id();
+
+const char *cenviro_light_chip_name();
+```
+
+and one defined data type:
+
+```c
+typedef struct
+{
+    uint16_t clear;
+    uint16_t red;
+    uint16_t green;
+    uint16_t blue;
+} cenviro_crgb_t;
+```
+
+#### cenviro_light_crgb_scaled()
+
+This function returns *cenviro_crgb_t* structure with raw data from light sensor.
+
+#### cenviro_light_crgb_raw()
+
+This function returns *cenviro_crgb_t* structure with scaled RGB data (0-255) and raw C (light intensity) data.
+
+#### cenviro_light_chip_id()
+
+This function return light sensor chip identifier (single byte, unsigned value).
+
+#### cenviro_light_chip_name()
+
+This function reutrn light sensor chip name if supported by library, or *(uknown)* string otherwise.
 
 ### Motion sensor
 
-This module is *not yet implemented*.
+Support for this module is **not yet implemented**.
+
+### AD converter
+
+Support for this module is **not yet implemented**.
 
 ## Demo and sample applications
 
