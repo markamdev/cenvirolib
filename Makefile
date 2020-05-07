@@ -65,7 +65,7 @@ $(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJS)
 
 clean:
 	@echo "CLEAN"
-	@rm -f $(LIB_OBJS) $(DEMO_OBJS)
+	@rm -f $(LIB_OBJS) $(DEMO_OBJS) $(METEO_OBJS)
 	@rm -rf $(BUILD_DIR)
 
 # output directory creation
