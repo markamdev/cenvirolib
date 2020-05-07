@@ -9,6 +9,7 @@
 
 int _cenviro_bus_fd = 0;
 bool _cenviro_initialized = false;
+uint8_t _cenviro_buffer[SHARED_BUFFER_LEN];
 
 bool cenviro_init()
 {

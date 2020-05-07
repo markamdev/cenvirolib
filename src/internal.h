@@ -21,6 +21,8 @@
 // variables shared between different library files
 extern int _cenviro_bus_fd;
 extern bool _cenviro_initialized;
+#define SHARED_BUFFER_LEN 32
+extern uint8_t _cenviro_buffer[SHARED_BUFFER_LEN]; // 32 bytes should be enough
 
 // functions used interally only
 bool cenviro_weather_init();

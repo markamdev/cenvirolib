@@ -70,14 +70,13 @@ cenviro_crgb_t cenviro_light_crgb_raw()
         return result;
     }
 
-    uint8_t buffer[8] = {0};
     ssize_t count = 0;
 
     // set command
-    buffer[0] = TCS_COMMAND | TCS_AUTOINCREMENT | TCS_ADDRESS_CLEAR_L;
+    _cenviro_buffer[0] = TCS_COMMAND | TCS_AUTOINCREMENT | TCS_ADDRESS_CLEAR_L;
 
     // send config
-    count = write(_cenviro_bus_fd, buffer, 1);
+    count = write(_cenviro_bus_fd, _cenviro_buffer, 1);
     if (count != 1)
     {
         LOG("Failed to crgb data request\n");
@@ -85,17 +84,17 @@ cenviro_crgb_t cenviro_light_crgb_raw()
     }
     usleep(COMMAND_WAIT * 1000);
 
-    count = read(_cenviro_bus_fd, buffer, 8);
+    count = read(_cenviro_bus_fd, _cenviro_buffer, 8);
     if (count != 8)
     {
         LOG("Failed to read crgb data\n");
         return result;
     }
 
-    result.clear = ((uint16_t)buffer[1]) << 8 | buffer[0];
-    result.red = ((uint16_t)buffer[3]) << 8 | buffer[2];
-    result.green = ((uint16_t)buffer[5]) << 8 | buffer[4];
-    result.blue = ((uint16_t)buffer[7]) << 8 | buffer[6];
+    result.clear = ((uint16_t)_cenviro_buffer[1]) << 8 | _cenviro_buffer[0];
+    result.red = ((uint16_t)_cenviro_buffer[3]) << 8 | _cenviro_buffer[2];
+    result.green = ((uint16_t)_cenviro_buffer[5]) << 8 | _cenviro_buffer[4];
+    result.blue = ((uint16_t)_cenviro_buffer[7]) << 8 | _cenviro_buffer[6];
 
     // now result should have necessary data
     return result;
@@ -138,15 +137,14 @@ const char *cenviro_light_chip_name()
 bool _initiaze_TCS()
 {
 #define ENABLE_DATA 0x03
-    uint8_t buffer[3] = {0};
 
-    buffer[0] = TCS_COMMAND | TCS_ADDRESS_ENABLE;
-    buffer[1] = ENABLE_DATA;
+    _cenviro_buffer[0] = TCS_COMMAND | TCS_ADDRESS_ENABLE;
+    _cenviro_buffer[1] = ENABLE_DATA;
 
     ssize_t count = 0;
 
     // send config
-    count = write(_cenviro_bus_fd, buffer, 2);
+    count = write(_cenviro_bus_fd, _cenviro_buffer, 2);
     if (count != 2)
     {
         LOG("Failed to write config\n");
@@ -154,8 +152,8 @@ bool _initiaze_TCS()
     }
     usleep(COMMAND_WAIT * 1000);
 
-    buffer[0] = TCS_COMMAND | TCS_ADDRESS_ID;
-    count = write(_cenviro_bus_fd, buffer, 1);
+    _cenviro_buffer[0] = TCS_COMMAND | TCS_ADDRESS_ID;
+    count = write(_cenviro_bus_fd, _cenviro_buffer, 1);
     if (count != 1)
     {
         LOG("Failed to write command for chip id\n");
@@ -163,13 +161,13 @@ bool _initiaze_TCS()
     }
     usleep(COMMAND_WAIT * 1000);
 
-    count = read(_cenviro_bus_fd, buffer, 1);
+    count = read(_cenviro_bus_fd, _cenviro_buffer, 1);
     if (count != 1)
     {
         LOG("Failed to read chip id\n");
         return false;
     }
-    _l_chip_id = buffer[0];
+    _l_chip_id = _cenviro_buffer[0];
 
     return true;
 #undef ENABLE_DATA
