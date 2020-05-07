@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "cenviro.h"
 #include "internal.h"
@@ -15,9 +16,8 @@
 static bool _led_initialized = false;
 static int _led_fd = 0;
 
-#define BUFFER_MAX 3
-#define DIRECTION_MAX 35
-#define VALUE_MAX 30
+#define DATA_BUFFER_MAX 3
+#define PATH_BUFFER_MAX 40
 
 static bool _gpio_export();
 static bool _gpio_set_output();
@@ -76,8 +76,27 @@ void cenviro_led_deinit()
 
 bool _gpio_export()
 {
-    int fd = 0;
+    // first check if already exported (pin ready to use)
+    struct stat file_check;
+    char buffer[PATH_BUFFER_MAX];
+    snprintf(buffer, PATH_BUFFER_MAX, "/sys/class/gpio/gpio%d", LED_PIN);
+    int result = stat(buffer, &file_check);
+    if (result == 0)
+    {
+        if (S_ISDIR(file_check.st_mode))
+        {
+            LOG("LED GPIO pin already exported\n");
+            return true;
+        }
+        else
+        {
+            // something is wrong - target exists but is not a link do directory
+            LOG("LED GPIO pin seems to be incorrectly exported\n");
+            return false;
+        }
+    }
 
+    int fd = 0;
     fd = open("/sys/class/gpio/export", O_WRONLY);
     if (-1 == fd)
     {
@@ -85,9 +104,8 @@ bool _gpio_export()
         return false;
     }
 
-    char buffer[BUFFER_MAX];
     ssize_t string_len = 0;
-    string_len = snprintf(buffer, BUFFER_MAX, "%d", LED_PIN);
+    string_len = snprintf(buffer, DATA_BUFFER_MAX, "%d", LED_PIN);
     ssize_t retval = write(fd, buffer, string_len);
     if (retval != string_len)
     {
@@ -101,11 +119,11 @@ bool _gpio_export()
 
 static bool _gpio_set_output()
 {
-    char path[DIRECTION_MAX];
+    char path[PATH_BUFFER_MAX];
     int fd = 0;
     int retrial_left = RETRIAL_COUNT;
 
-    snprintf(path, DIRECTION_MAX, "/sys/class/gpio/gpio%d/direction", LED_PIN);
+    snprintf(path, PATH_BUFFER_MAX, "/sys/class/gpio/gpio%d/direction", LED_PIN);
     while (retrial_left > 0)
     {
         LOG("Trying to open direction file\n");
@@ -149,11 +167,11 @@ static bool _gpio_set_output()
 
 static bool _gpio_open_output_file()
 {
-    char path[VALUE_MAX];
+    char path[PATH_BUFFER_MAX];
     int fd = 0;
     int retrial_left = RETRIAL_COUNT;
 
-    snprintf(path, VALUE_MAX, "/sys/class/gpio/gpio%d/value", LED_PIN);
+    snprintf(path, PATH_BUFFER_MAX, "/sys/class/gpio/gpio%d/value", LED_PIN);
     while (retrial_left > 0)
     {
         LOG("Trying to open value file\n");
@@ -205,7 +223,7 @@ static bool _gpio_set_value(bool value)
 
 bool _gpio_unexport()
 {
-    char buffer[BUFFER_MAX];
+    char buffer[DATA_BUFFER_MAX];
     ssize_t bytes_written;
     int fd;
 
@@ -216,7 +234,7 @@ bool _gpio_unexport()
         return false;
     }
 
-    bytes_written = snprintf(buffer, BUFFER_MAX, "%d", LED_PIN);
+    bytes_written = snprintf(buffer, DATA_BUFFER_MAX, "%d", LED_PIN);
     write(fd, buffer, bytes_written);
     close(fd);
 
