@@ -103,6 +103,11 @@ cenviro_crgb_t cenviro_light_crgb_raw()
 cenviro_crgb_t cenviro_light_crgb_scaled()
 {
     cenviro_crgb_t result = cenviro_light_crgb_raw();
+    if (result.clear == 0)
+    {
+        // it's too dark for light level measurment - leave the function to not divide by 0
+        return result;
+    }
     result.red = (result.red * 255) / result.clear;
     result.green = (result.green * 255) / result.clear;
     result.blue = (result.blue * 255) / result.clear;
