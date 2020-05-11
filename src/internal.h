@@ -24,6 +24,17 @@ extern bool _cenviro_initialized;
 #define SHARED_BUFFER_LEN 32
 extern uint8_t _cenviro_buffer[SHARED_BUFFER_LEN]; // 32 bytes should be enough
 
+#ifndef DISABLE_THREADSAFE
+#include <pthread.h>
+extern pthread_mutex_t _cenviro_lock;
+// define helper macros for easier mutex lock/unlock in multithread code
+#define CENVIRO_LOCK_MUTEX() pthread_mutex_lock(&_cenviro_lock)
+#define CENVIRO_UNLOCK_MUTEX() pthread_mutex_unlock(&_cenviro_lock)
+#else
+#define CENVIRO_LOCK_MUTEX()
+#define CENVIRO_UNLOCK_MUTEX()
+#endif // DISABLE_THREADSAFE
+
 // functions used interally only
 bool cenviro_weather_init();
 bool cenviro_led_init();

@@ -40,9 +40,11 @@ METEO_SRCS = apps/meteo/main.c
 METEO_OBJS = $(METEO_SRCS:.c=.o)
 
 # targets' definition
-.PHONY: default clean debug demo meteo
+.PHONY: default clean debug all demo meteo nothreadsafe
 
-default: $(BUILD_DIR)/$(LIB_NAME).a demo
+default: $(BUILD_DIR)/$(LIB_NAME).a
+
+all: demo meteo
 
 demo: $(BUILD_DIR)/$(DEMO_NAME)
 
@@ -73,7 +75,10 @@ $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
 debug: C_FLAGS += -g -DDEBUG
-debug: default
+debug: all
+
+nothreadsafe: C_FLAGS += -DDISABLE_THREADSAFE
+nothreadsafe: all
 
 # header files copying
 $(BUILD_DIR)/%.h: $(INC_DIR)/%.h

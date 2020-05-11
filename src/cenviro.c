@@ -11,8 +11,14 @@ int _cenviro_bus_fd = 0;
 bool _cenviro_initialized = false;
 uint8_t _cenviro_buffer[SHARED_BUFFER_LEN];
 
+#ifndef DISABLE_THREADSAFE
+#include <pthread.h>
+pthread_mutex_t _cenviro_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif // DISABLE_THREADSAFE
+
 bool cenviro_init()
 {
+    CENVIRO_LOCK_MUTEX();
     int bus_file = 0;
     bool status = false;
 
@@ -20,6 +26,7 @@ bool cenviro_init()
     if (!status)
     {
         LOG("Failed to init led module\n");
+        CENVIRO_UNLOCK_MUTEX();
         return false;
     }
 
@@ -49,6 +56,7 @@ bool cenviro_init()
         goto err_i2c;
     }
 
+    CENVIRO_UNLOCK_MUTEX();
     return true;
 
 err_i2c:
@@ -56,16 +64,18 @@ err_i2c:
 err_led:
     cenviro_led_deinit();
     _cenviro_initialized = false;
+    CENVIRO_UNLOCK_MUTEX();
     return false;
 }
 
 void cenviro_deinit()
 {
+    CENVIRO_LOCK_MUTEX();
     if (!_cenviro_initialized)
     {
+        CENVIRO_UNLOCK_MUTEX();
         return;
     }
-
     _cenviro_initialized = false;
     cenviro_led_deinit();
 
@@ -74,4 +84,5 @@ void cenviro_deinit()
         close(_cenviro_bus_fd);
         _cenviro_bus_fd = 0;
     }
+    CENVIRO_UNLOCK_MUTEX();
 }

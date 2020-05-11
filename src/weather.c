@@ -77,6 +77,7 @@ double cenviro_weather_temperature()
     }
     ssize_t count = 0;
 
+    CENVIRO_LOCK_MUTEX();
     ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     _cenviro_buffer[0] = BMP_ADDRESS_RAW_TEMP;
@@ -84,6 +85,7 @@ double cenviro_weather_temperature()
     if (count != 1)
     {
         LOG("Failed to send command for temp. reading\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0.0;
     }
 
@@ -92,6 +94,7 @@ double cenviro_weather_temperature()
     if (count != 3)
     {
         LOG("Failed to read raw temperature data\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0.0;
     }
 
@@ -99,6 +102,7 @@ double cenviro_weather_temperature()
     full_raw_temp = ((int32_t)_cenviro_buffer[0]) << 12 | ((int32_t)_cenviro_buffer[1]) << 4 | ((int32_t)_cenviro_buffer[2]) >> 4;
 
     int32_t calibrated_temp = _calibrate_temperature(full_raw_temp);
+    CENVIRO_UNLOCK_MUTEX();
 
     return ((double)calibrated_temp) / 100;
 }
@@ -112,6 +116,7 @@ double cenviro_weather_pressure()
 
     ssize_t count = 0;
 
+    CENVIRO_LOCK_MUTEX();
     ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR);
 
     _cenviro_buffer[0] = BMP_ADDRESS_RAW_PRESS;
@@ -119,6 +124,7 @@ double cenviro_weather_pressure()
     if (count != 1)
     {
         LOG("Failed to send command for temp. reading\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0.0;
     }
 
@@ -127,6 +133,7 @@ double cenviro_weather_pressure()
     if (count != 3)
     {
         LOG("Failed to read raw temperature data\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0.0;
     }
 
@@ -136,6 +143,7 @@ double cenviro_weather_pressure()
     int32_t calibrated_press = _calibrate_pressure(full_raw_press);
 
     // return value in hPa
+    CENVIRO_UNLOCK_MUTEX();
     return ((double)calibrated_press) / 100;
 }
 
@@ -250,9 +258,11 @@ uint8_t cenviro_weather_chip_id()
         return 0x00;
     }
 
+    CENVIRO_LOCK_MUTEX();
     if (ioctl(_cenviro_bus_fd, I2C_SLAVE, WEATHER_ADDR) < 0)
     {
         LOG("Failed to set weather sensor address\n");
+        CENVIRO_UNLOCK_MUTEX();
         return false;
     }
 
@@ -263,6 +273,7 @@ uint8_t cenviro_weather_chip_id()
     if (count != 1)
     {
         LOG("Failed to write command for chip id\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0x00;
     }
 
@@ -271,9 +282,11 @@ uint8_t cenviro_weather_chip_id()
     if (count != 1)
     {
         LOG("Failed to read chip id\n");
+        CENVIRO_UNLOCK_MUTEX();
         return 0x00;
     }
 
+    CENVIRO_UNLOCK_MUTEX();
     return _cenviro_buffer[0];
 }
 

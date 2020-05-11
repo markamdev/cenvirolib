@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 
     if (_opt_all || _opt_temp)
     {
+        printf("Read temperature data\n");
         uint8_t chip_id = cenviro_weather_chip_id();
         if (chip_id != 0x58)
         {

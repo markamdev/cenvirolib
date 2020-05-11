@@ -64,9 +64,11 @@ cenviro_crgb_t cenviro_light_crgb_raw()
         // return empty (zeroed) result
         return result;
     }
+    CENVIRO_LOCK_MUTEX();
     if (ioctl(_cenviro_bus_fd, I2C_SLAVE, LIGHT_ADDR) < 0)
     {
         LOG("Failed to set light sensor address\n");
+        CENVIRO_UNLOCK_MUTEX();
         return result;
     }
 
@@ -80,6 +82,7 @@ cenviro_crgb_t cenviro_light_crgb_raw()
     if (count != 1)
     {
         LOG("Failed to crgb data request\n");
+        CENVIRO_UNLOCK_MUTEX();
         return result;
     }
     usleep(COMMAND_WAIT * 1000);
@@ -88,6 +91,7 @@ cenviro_crgb_t cenviro_light_crgb_raw()
     if (count != 8)
     {
         LOG("Failed to read crgb data\n");
+        CENVIRO_UNLOCK_MUTEX();
         return result;
     }
 
@@ -97,6 +101,7 @@ cenviro_crgb_t cenviro_light_crgb_raw()
     result.blue = ((uint16_t)_cenviro_buffer[7]) << 8 | _cenviro_buffer[6];
 
     // now result should have necessary data
+    CENVIRO_UNLOCK_MUTEX();
     return result;
 }
 
