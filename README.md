@@ -17,10 +17,21 @@ In case you're downloading the project to your PC but want to use in application
 
 ```bash
 git clone https://github.com/markamdev/cenvirolib
+cd cenvirolib
 make CC=arm-linux-gnueabihf-gcc
 ```
 
 In output directory (*./build*) you will find header file (*cenviro.h*) and library itself (*libcenviro.a*).
+
+### Thread unsafe version
+
+By default library is compiled in thread-safe version with mutexes used to protect critical sections. Standard *pthread* library is used for this purpose.
+
+If for some reason it is not desired to have mutex operations enabled (ex. pthread library is not available or application is using only single thread and mutexing is a CPU time wasting) code can be compiled in thread-unsafe version by defining *DISABLE_THREADSAFE*. This definition is added in *nothreadsafe* make target:
+
+```bash
+make nothreadsafe
+```
 
 ## Functionality
 
@@ -144,8 +155,14 @@ Support for this module is **not yet implemented**.
 
 This project provides following sample applications that show possible library use:
 
-* demo
+* cenvirodemo
+  * source code in *./apps/demo*
+  * shows basic usage of all implemented modules,
+  * launch with *-h* to see help message
 * meteo-app
+  * source code in *./apps/meteo*
+  * once a second, in infinite loop, reads current temperature and pressur
+  * prints temperature and pressure values in top left corner of the console
 
 ## License
 
