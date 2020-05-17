@@ -18,7 +18,7 @@ static void _show_dot();
 static void _show_dash();
 static void _print_help(const char *name);
 
-void signal_handler(int signal)
+static void _signal_handler(int signal)
 {
     cenviro_deinit();
     exit(0);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    signal(SIGINT, signal_handler);
+    signal(SIGINT, _signal_handler);
     status = cenviro_init();
     if (!status)
     {
