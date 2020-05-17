@@ -163,6 +163,14 @@ This project provides following sample applications that show possible library u
   * source code in *./apps/meteo*
   * once a second, in infinite loop, reads current temperature and pressur
   * prints temperature and pressure values in top left corner of the console
+* sos-blink
+  * source in *./apps/sos-blink*
+  * application blinks S.O.S. signal (once or infinitely)
+* auto-light
+  * source in *./apps/auto-light*
+  * application simulates light controler - switches LED on and off based on current light intensity
+  * light switching theshold can be configured by command line param
+  * WARNING: onboad LEDs are detected by onboard sensor so to use this app one has to isolate sensor and LEDs
 
 ## License
 

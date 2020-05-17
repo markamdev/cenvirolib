@@ -9,6 +9,8 @@ BUILD_DIR = ./build
 # output files
 DEMO_NAME=cenvirodemo
 METEO_NAME=meteo-app
+SOS_NAME=sos-blink
+AL_NAME=auto-light
 LIB_NAME=libcenviro
 
 # build flags
@@ -39,16 +41,31 @@ METEO_SRCS = apps/meteo/main.c
 # list of meteo object files
 METEO_OBJS = $(METEO_SRCS:.c=.o)
 
+# list of files to be compiled into SOS blinking application
+SOS_SRCS = apps/sos-blink/sos-main.c
+# list of sos-blink objects
+SOS_OBJS = $(SOS_SRCS:.c=.o)
+
+# list of files to be compiled into auto light switch application
+AL_SRCS = apps/auto-light/al-main.c apps/auto-light/al-utils.c
+# list of autolight objects
+AL_OBJS = $(AL_SRCS:.c=.o)
+
+
 # targets' definition
-.PHONY: default clean debug all demo meteo nothreadsafe
+.PHONY: default clean debug all demo meteo nothreadsafe sos autolight
 
 default: $(BUILD_DIR)/$(LIB_NAME).a
 
-all: demo meteo
+all: demo meteo sos autolight
 
 demo: $(BUILD_DIR)/$(DEMO_NAME)
 
 meteo: $(BUILD_DIR)/$(METEO_NAME)
+
+sos: $(BUILD_DIR)/$(SOS_NAME)
+
+autolight: $(BUILD_DIR)/$(AL_NAME)
 
 # demo application
 $(BUILD_DIR)/$(DEMO_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(DEMO_OBJS)
@@ -60,6 +77,16 @@ $(BUILD_DIR)/$(METEO_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(
 	@echo "BINARY: $@"
 	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(METEO_OBJS) -lcenviro -o $(BUILD_DIR)/$(METEO_NAME)
 
+# sos blink app
+$(BUILD_DIR)/$(SOS_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(SOS_OBJS)
+	@echo "BINARY: $@"
+	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(SOS_OBJS) -lcenviro -o $(BUILD_DIR)/$(SOS_NAME)
+
+# auto light switching app
+$(BUILD_DIR)/$(AL_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(AL_OBJS)
+	@echo "BINARY: $@"
+	@$(CC) -I$(BUILD_DIR) $(C_FLAGS) -L$(BUILD_DIR) $(LD_FLAGS) $(AL_OBJS) -lcenviro -o $(BUILD_DIR)/$(AL_NAME)
+
 # library compilation
 $(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJS)
 	@echo "LIBRARY: $@"
@@ -67,7 +94,8 @@ $(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJS)
 
 clean:
 	@echo "CLEAN"
-	@rm -f $(LIB_OBJS) $(DEMO_OBJS) $(METEO_OBJS)
+	@rm -f $(LIB_OBJS)
+	@rm -f $(DEMO_OBJS) $(METEO_OBJS) $(SOS_OBJS) $(AL_OBJS)
 	@rm -rf $(BUILD_DIR)
 
 # output directory creation
