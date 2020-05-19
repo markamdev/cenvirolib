@@ -40,5 +40,6 @@ bool cenviro_weather_init();
 bool cenviro_led_init();
 void cenviro_led_deinit();
 bool cenviro_light_init();
+bool cenviro_motion_init();
 
 #endif // _CENVIRO_INTERNAL_H_

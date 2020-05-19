@@ -48,7 +48,7 @@ bool cenviro_light_init()
 
     if (!_initiaze_TCS())
     {
-        LOG("Failed to initialize ligh module\n");
+        LOG("Failed to initialize light module\n");
         return false;
     }
 
@@ -81,7 +81,7 @@ cenviro_crgb_t cenviro_light_crgb_raw()
     count = write(_cenviro_bus_fd, _cenviro_buffer, 1);
     if (count != 1)
     {
-        LOG("Failed to crgb data request\n");
+        LOG("Failed to send crgb data request\n");
         CENVIRO_UNLOCK_MUTEX();
         return result;
     }

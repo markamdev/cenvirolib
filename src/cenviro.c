@@ -56,6 +56,13 @@ bool cenviro_init()
         goto err_i2c;
     }
 
+    status = cenviro_motion_init();
+    if (!status)
+    {
+        LOG("Failed to init motion module\n");
+        goto err_i2c;
+    }
+
     CENVIRO_UNLOCK_MUTEX();
     return true;
 

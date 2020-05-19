@@ -7,6 +7,7 @@
 
 #define BLINK_TIME 500
 #define READ_WEATHER_DELAY 1000
+#define READ_MOTION_DELAY 1000
 
 // config flags
 static bool _opt_all = false;
@@ -14,6 +15,8 @@ static bool _opt_led = false;
 static bool _opt_temp = false;
 static bool _opt_pressure = false;
 static bool _opt_light = false;
+static bool _opt_motion = false;
+static bool _opt_m_temp = false;
 
 static bool _parse_options(int argc, char *argv[]);
 
@@ -82,7 +85,7 @@ int main(int argc, char *argv[])
         {
             double press = cenviro_weather_pressure();
             printf("- current pressure is: %.1f [hPa]\n", press);
-            usleep(READ_WEATHER_DELAY * 1000);
+            usleep(READ_MOTION_DELAY * 1000);
         }
     }
 
@@ -109,6 +112,32 @@ int main(int argc, char *argv[])
             usleep(READ_WEATHER_DELAY * 1000);
         }
     }
+    if (_opt_all || _opt_motion)
+    {
+        printf("Read motion sensor data\n");
+    }
+    if (_opt_all || _opt_m_temp)
+    {
+        printf("Read temperature from motion sensor\n");
+        uint8_t chip_id = cenviro_motion_chip_id();
+        if (chip_id != 0x49)
+        {
+            printf("Unsupported motion chip: 0x%02x\n", chip_id);
+            cenviro_deinit();
+            return 1;
+        }
+        else
+        {
+
+            printf("Chip version detected: 0x%02x\n", chip_id);
+        }
+        for (int i = 0; i < 5; ++i)
+        {
+            double temp = cenviro_motion_temperature();
+            printf("- current temp is: %.1f [*C]\n", temp);
+            usleep(READ_WEATHER_DELAY * 1000);
+        }
+    }
 
     cenviro_deinit();
     return 0;
@@ -125,6 +154,8 @@ void _print_help(const char *name)
     printf("-t\tlaunch _t_empature reader\n");
     printf("-p\tlaunch _p_ressure reader\n");
     printf("-i\tlaunch light _i_ntensity reader\n");
+    printf("-m\tlaunch _m_otion sensor reader\n");
+    printf("-e\tlaunch t_e_mperature reader using motion sensor chip\n");
 }
 
 bool _parse_options(int argc, char *argv[])
@@ -171,6 +202,16 @@ bool _parse_options(int argc, char *argv[])
         if (strncmp(argv[i], "-i", 2) == 0)
         {
             _opt_light = true;
+            continue;
+        }
+        if (strncmp(argv[i], "-m", 2) == 0)
+        {
+            _opt_motion = true;
+            continue;
+        }
+        if (strncmp(argv[i], "-e", 2) == 0)
+        {
+            _opt_m_temp = true;
             continue;
         }
     }

@@ -35,4 +35,9 @@ uint8_t cenviro_light_chip_id();
 
 const char *cenviro_light_chip_name();
 
+// motion module
+double cenviro_motion_temperature();
+
+uint8_t cenviro_motion_chip_id();
+
 #endif // _CENVIRO_H_
