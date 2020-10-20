@@ -17,6 +17,8 @@ LIB_NAME=libcenviro
 C_FLAGS += -I$(INC_DIR) -std=c99 -Wall
 # flag for using 'usleep()'
 C_FLAGS += -D_XOPEN_SOURCE=500
+# needed for shared library
+C_FLAGS += -fPIC
 
 # linker flags
 LD_FLAGS = -pthread
@@ -55,7 +57,7 @@ AL_OBJS = $(AL_SRCS:.c=.o)
 # targets' definition
 .PHONY: default clean debug all demo meteo nothreadsafe sos autolight
 
-default: $(BUILD_DIR)/$(LIB_NAME).a
+default: $(BUILD_DIR)/$(LIB_NAME).a $(BUILD_DIR)/$(LIB_NAME).so
 
 all: demo meteo sos autolight
 
@@ -91,6 +93,10 @@ $(BUILD_DIR)/$(AL_NAME): $(BUILD_DIR)/$(LIB_NAME).a $(LIB_INSTALL_HEADERS) $(AL_
 $(BUILD_DIR)/$(LIB_NAME).a: $(BUILD_DIR) $(LIB_OBJS)
 	@echo "LIBRARY: $@"
 	@ar rcs $@ $(LIB_OBJS)
+
+$(BUILD_DIR)/$(LIB_NAME).so: $(BUILD_DIR) $(LIB_OBJS)
+	@echo "DYNAMIC LIBRARY: $@"
+	@$(CC) $(C_FLAGS) -shared $(LIB_OBJS) -o $@
 
 clean:
 	@echo "CLEAN"
